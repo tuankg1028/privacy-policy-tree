@@ -1,11 +1,11 @@
 FROM registry.scontain.com:5050/sconecuratedimages/apps:node-10.14-alpine
 ENV SCONE_HEAP=1G
+ENV SCONE_FORK=1
 WORKDIR /app
 
 COPY package*.json /app/
 
-RUN npm install
-RUN npm run build
+RUN npm install --production
 COPY . /app/
 
 EXPOSE 3000
