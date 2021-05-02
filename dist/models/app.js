@@ -13,16 +13,8 @@ var findOrCreate = require("mongoose-findorcreate");
 
 var schema = new Schema({
   name: String,
-  attributes: [{
-    name: String,
-    left: Number,
-    right: Number
-  }],
-  purposes: [{
-    name: String,
-    left: Number,
-    right: Number
-  }]
+  attributes: [Schema.Types.ObjectId],
+  purposes: [Schema.Types.ObjectId]
 }, {
   timestamps: true,
   toJSON: {

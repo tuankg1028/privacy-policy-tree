@@ -15,11 +15,14 @@ var _user = _interopRequireDefault(require("./user.model"));
 
 var _evaluateHash = _interopRequireDefault(require("./evaluate-hash.model"));
 
+var _privacyPolicy = _interopRequireDefault(require("./privacy-policy.model"));
+
 var Model = function Model() {
   (0, _classCallCheck2["default"])(this, Model);
   this.App = _app["default"];
   this.User = _user["default"];
   this.EvaluateHash = _evaluateHash["default"];
+  this.PrivacyPolicy = _privacyPolicy["default"];
 };
 
 var _default = new Model();

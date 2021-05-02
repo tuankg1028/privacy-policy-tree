@@ -66,8 +66,9 @@ var evaluate = /*#__PURE__*/function () {
 }(); // evaluate timeofRetention between app and upp
 
 
-var evaluateTimeofRetention = function evaluateTimeofRetention(appTimeofRetention, privacyPreference) {
-  console.log(appTimeofRetention, privacyPreference.timeofRetention);
+var evaluateTimeofRetention = function evaluateTimeofRetention() {
+  var appTimeofRetention = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
+  var privacyPreference = arguments.length > 1 ? arguments[1] : undefined;
   return appTimeofRetention <= privacyPreference.timeofRetention;
 }; // evaluate attributes between app and upp
 
@@ -89,9 +90,9 @@ var evaluateAttributes = /*#__PURE__*/function () {
             isAllowed = _yield$Promise$all4[0];
             isExcepted = _yield$Promise$all4[1];
             isDeny = _yield$Promise$all4[2];
-            console.log(_chalk["default"].blue("ATTRIBUTE - allow: APP: ".concat(JSON.stringify(appAttributes), " - UPP ").concat(privacyPreference.attributes, " is ").concat(_chalk["default"].green(isAllowed))));
-            console.log(_chalk["default"].blue("ATTRIBUTE - except: APP: ".concat(JSON.stringify(appAttributes), " - UPP ").concat(privacyPreference.exceptions, " is ").concat(_chalk["default"].green(!isExcepted))));
-            console.log(_chalk["default"].blue("ATTRIBUTE - deny: APP: ".concat(JSON.stringify(appAttributes), " - UPP ").concat(privacyPreference.exceptions, " is ").concat(_chalk["default"].green(!isDeny))));
+            console.log(isAllowed ? _chalk["default"].green("✅") : _chalk["default"].red("✖"), _chalk["default"].blue("ATTRIBUTE - allow: APP: ".concat(JSON.stringify(appAttributes), " - UPP ").concat(JSON.stringify(privacyPreference.attributes))));
+            console.log(!isExcepted ? _chalk["default"].green("✅") : _chalk["default"].red("✖"), _chalk["default"].blue("ATTRIBUTE - except: APP: ".concat(JSON.stringify(appAttributes), " - UPP ").concat(JSON.stringify(privacyPreference.exceptions))));
+            console.log(!isDeny ? _chalk["default"].green("✅") : _chalk["default"].red("✖"), _chalk["default"].blue("ATTRIBUTE - deny: APP: ".concat(JSON.stringify(appAttributes), " - UPP ").concat(JSON.stringify(privacyPreference.exceptions))));
             return _context2.abrupt("return", isAllowed && !isExcepted && !isDeny);
 
           case 11:
@@ -115,64 +116,60 @@ var evaluateAttributeType = /*#__PURE__*/function () {
       while (1) {
         switch (_context3.prev = _context3.next) {
           case 0:
+            _context3.prev = 0;
             _context3.t0 = true;
-            _context3.next = _context3.t0 === (type === "allow") ? 3 : _context3.t0 === (type === "except") ? 5 : _context3.t0 === (type === "deny") ? 7 : 9;
+            _context3.next = _context3.t0 === (type === "allow") ? 4 : _context3.t0 === (type === "except") ? 6 : _context3.t0 === (type === "deny") ? 8 : 10;
             break;
 
-          case 3:
+          case 4:
             uppAttributes = privacyPreference.attributes;
-            return _context3.abrupt("break", 10);
+            return _context3.abrupt("break", 11);
 
-          case 5:
+          case 6:
             uppAttributes = privacyPreference.exceptions;
-            return _context3.abrupt("break", 10);
+            return _context3.abrupt("break", 11);
 
-          case 7:
+          case 8:
             uppAttributes = privacyPreference.exceptions;
-            return _context3.abrupt("break", 10);
-
-          case 9:
-            throw new Error("type is invalid");
+            return _context3.abrupt("break", 11);
 
           case 10:
-            i = 0;
+            throw new Error("type is invalid");
 
           case 11:
+            i = 0;
+
+          case 12:
             if (!(i < appAttributes.length)) {
-              _context3.next = 27;
+              _context3.next = 28;
               break;
             }
 
             appAttributeId = appAttributes[i];
-            _context3.next = 15;
-            return _models["default"].App.aggregate([{
-              $match: {
-                _id: _mongoose["default"].Types.ObjectId(appId)
-              }
-            }, {
+            _context3.next = 16;
+            return _models["default"].PrivacyPolicy.aggregate([{
               $unwind: "$attributes"
             }, {
               $match: {
-                "attributes._id": _mongoose["default"].Types.ObjectId(appAttributeId)
+                "attributes._id": _mongoose["default"].Types.ObjectId(appAttributeId.id)
               }
             }]);
 
-          case 15:
+          case 16:
             appAttribute = _context3.sent;
 
             if (!(!appAttribute[0] || !appAttribute[0].attributes)) {
-              _context3.next = 18;
+              _context3.next = 19;
               break;
             }
 
             throw new Error("Attribute ".concat(appAttributeId, " not found"));
 
-          case 18:
+          case 19:
             // get attribute
             appAttribute = appAttribute[0].attributes;
-            _context3.next = 21;
-            return _models["default"].App.findOne({
-              _id: appId,
+            _context3.next = 22;
+            return _models["default"].PrivacyPolicy.findOne({
               attributes: {
                 $elemMatch: {
                   _id: {
@@ -188,30 +185,38 @@ var evaluateAttributeType = /*#__PURE__*/function () {
               }
             });
 
-          case 21:
+          case 22:
             result = _context3.sent;
 
             if (!result) {
-              _context3.next = 24;
+              _context3.next = 25;
               break;
             }
 
             return _context3.abrupt("return", true);
 
-          case 24:
+          case 25:
             i++;
-            _context3.next = 11;
+            _context3.next = 12;
             break;
 
-          case 27:
+          case 28:
             return _context3.abrupt("return", false);
 
-          case 28:
+          case 31:
+            _context3.prev = 31;
+            _context3.t1 = _context3["catch"](0);
+
+            _chalk["default"].red(console.error("evaluateAttributeType: " + _context3.t1.message));
+
+            throw _context3.t1;
+
+          case 35:
           case "end":
             return _context3.stop();
         }
       }
-    }, _callee3);
+    }, _callee3, null, [[0, 31]]);
   }));
 
   return function evaluateAttributeType(_x6, _x7, _x8, _x9) {
@@ -237,9 +242,9 @@ var evaluatePurposes = /*#__PURE__*/function () {
             isAllowed = _yield$Promise$all6[0];
             isExcepted = _yield$Promise$all6[1];
             isDeny = _yield$Promise$all6[2];
-            console.log(_chalk["default"].blue("PURPOSE - allow: APP: ".concat(JSON.stringify(appPurposes), " - UPP ").concat(privacyPreference.allowedPurposes, " is ").concat(_chalk["default"].green(isAllowed))));
-            console.log(_chalk["default"].blue("PURPOSE - except: APP: ".concat(JSON.stringify(appPurposes), " - UPP ").concat(privacyPreference.prohibitedPurposes, " is ").concat(_chalk["default"].green(!isExcepted))));
-            console.log(_chalk["default"].blue("PURPOSE - deny: APP: ".concat(JSON.stringify(appPurposes), " - UPP ").concat(privacyPreference.denyPurposes, " is ").concat(_chalk["default"].green(!isDeny))));
+            console.log(isAllowed ? _chalk["default"].green("✅") : _chalk["default"].red("✖"), _chalk["default"].blue("PURPOSE - allow: APP: ".concat(JSON.stringify(appPurposes), " - UPP ").concat(JSON.stringify(privacyPreference.allowedPurposes))));
+            console.log(!isExcepted ? _chalk["default"].green("✅") : _chalk["default"].red("✖"), _chalk["default"].blue("PURPOSE - except: APP: ".concat(JSON.stringify(appPurposes), " - UPP ").concat(JSON.stringify(privacyPreference.prohibitedPurposes))));
+            console.log(!isDeny ? _chalk["default"].green("✅") : _chalk["default"].red("✖"), _chalk["default"].blue("PURPOSE - deny: APP: ".concat(JSON.stringify(appPurposes), " - UPP ").concat(JSON.stringify(privacyPreference.denyPurposes))));
             return _context4.abrupt("return", isAllowed && !isExcepted && !isDeny);
 
           case 11:
@@ -293,15 +298,11 @@ var evaluatePurposesType = /*#__PURE__*/function () {
 
             appPurposeId = appPurposes[i];
             _context5.next = 15;
-            return _models["default"].App.aggregate([{
-              $match: {
-                _id: _mongoose["default"].Types.ObjectId(appId)
-              }
-            }, {
+            return _models["default"].PrivacyPolicy.aggregate([{
               $unwind: "$purposes"
             }, {
               $match: {
-                "purposes._id": _mongoose["default"].Types.ObjectId(appPurposeId)
+                "purposes._id": _mongoose["default"].Types.ObjectId(appPurposeId.id)
               }
             }]);
 
@@ -319,8 +320,7 @@ var evaluatePurposesType = /*#__PURE__*/function () {
             // get purpose
             appPurpose = appPurpose[0].purposes;
             _context5.next = 21;
-            return _models["default"].App.findOne({
-              _id: appId,
+            return _models["default"].PrivacyPolicy.findOne({
               purposes: {
                 $elemMatch: {
                   _id: {

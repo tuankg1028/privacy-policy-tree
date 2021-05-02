@@ -4,9 +4,14 @@ var findOrCreate = require("mongoose-findorcreate");
 
 var schema = new Schema(
   {
-    name: String,
-    attributes: [Schema.Types.ObjectId],
-    purposes: [Schema.Types.ObjectId],
+    attributes: [
+      {
+        name: String,
+        left: Number,
+        right: Number,
+      },
+    ],
+    purposes: [{ name: String, left: Number, right: Number }],
   },
   {
     timestamps: true,
@@ -15,4 +20,4 @@ var schema = new Schema(
 );
 schema.plugin(findOrCreate);
 
-export default mongoose.model("app", schema);
+export default mongoose.model("privacyPolicy", schema);

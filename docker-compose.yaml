@@ -1,0 +1,17 @@
+version: '3.7'
+services:
+  nodeserver:
+    build:
+      context: .
+    ports:
+      - "3000:3000"
+  db:
+    image: mongo
+    ports:
+      - "127.0.0.1:27018:27017"
+    # volu`b:/data/db
+    restart: unless-stopped
+  # jadx: 
+  #   image: cincan/jadx
+  #   volumes:
+  #     - ./samples:/samples

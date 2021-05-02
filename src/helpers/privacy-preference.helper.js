@@ -30,8 +30,7 @@ const evaluate = async (
 };
 
 // evaluate timeofRetention between app and upp
-const evaluateTimeofRetention = (appTimeofRetention, privacyPreference) => {
-  console.log(appTimeofRetention, privacyPreference.timeofRetention);
+const evaluateTimeofRetention = (appTimeofRetention = 0, privacyPreference) => {
   return appTimeofRetention <= privacyPreference.timeofRetention;
 };
 
@@ -44,26 +43,29 @@ const evaluateAttributes = async (appId, appAttributes, privacyPreference) => {
   ]);
 
   console.log(
+    isAllowed ? chalk.green("✅") : chalk.red("✖"),
     chalk.blue(
-      `ATTRIBUTE - allow: APP: ${JSON.stringify(appAttributes)} - UPP ${
-        privacyPreference.attributes
-      } is ${chalk.green(isAllowed)}`
+      `ATTRIBUTE - allow: APP: ${JSON.stringify(
+        appAttributes
+      )} - UPP ${JSON.stringify(privacyPreference.attributes)}`
     )
   );
 
   console.log(
+    !isExcepted ? chalk.green("✅") : chalk.red("✖"),
     chalk.blue(
-      `ATTRIBUTE - except: APP: ${JSON.stringify(appAttributes)} - UPP ${
-        privacyPreference.exceptions
-      } is ${chalk.green(!isExcepted)}`
+      `ATTRIBUTE - except: APP: ${JSON.stringify(
+        appAttributes
+      )} - UPP ${JSON.stringify(privacyPreference.exceptions)}`
     )
   );
 
   console.log(
+    !isDeny ? chalk.green("✅") : chalk.red("✖"),
     chalk.blue(
-      `ATTRIBUTE - deny: APP: ${JSON.stringify(appAttributes)} - UPP ${
-        privacyPreference.exceptions
-      } is ${chalk.green(!isDeny)}`
+      `ATTRIBUTE - deny: APP: ${JSON.stringify(
+        appAttributes
+      )} - UPP ${JSON.stringify(privacyPreference.exceptions)}`
     )
   );
 
@@ -77,53 +79,59 @@ const evaluateAttributeType = async (
   privacyPreference,
   type
 ) => {
-  let uppAttributes;
+  try {
+    let uppAttributes;
 
-  switch (true) {
-    case type === "allow": {
-      uppAttributes = privacyPreference.attributes;
-      break;
+    switch (true) {
+      case type === "allow": {
+        uppAttributes = privacyPreference.attributes;
+        break;
+      }
+      case type === "except": {
+        uppAttributes = privacyPreference.exceptions;
+        break;
+      }
+      case type === "deny": {
+        uppAttributes = privacyPreference.exceptions;
+        break;
+      }
+      default: {
+        throw new Error("type is invalid");
+      }
     }
-    case type === "except": {
-      uppAttributes = privacyPreference.exceptions;
-      break;
-    }
-    case type === "deny": {
-      uppAttributes = privacyPreference.exceptions;
-      break;
-    }
-    default: {
-      throw new Error("type is invalid");
-    }
-  }
 
-  for (let i = 0; i < appAttributes.length; i++) {
-    const appAttributeId = appAttributes[i];
-    let appAttribute = await Models.App.aggregate([
-      { $match: { _id: mongoose.Types.ObjectId(appId) } },
-      { $unwind: "$attributes" },
-      { $match: { "attributes._id": mongoose.Types.ObjectId(appAttributeId) } },
-    ]);
-
-    if (!appAttribute[0] || !appAttribute[0].attributes)
-      throw new Error(`Attribute ${appAttributeId} not found`);
-    // get attribute
-    appAttribute = appAttribute[0].attributes;
-
-    const result = await Models.App.findOne({
-      _id: appId,
-      attributes: {
-        $elemMatch: {
-          _id: { $in: uppAttributes },
-          left: { $lte: appAttribute.left },
-          right: { $gte: appAttribute.right },
+    for (let i = 0; i < appAttributes.length; i++) {
+      const appAttributeId = appAttributes[i];
+      let appAttribute = await Models.PrivacyPolicy.aggregate([
+        { $unwind: "$attributes" },
+        {
+          $match: {
+            "attributes._id": mongoose.Types.ObjectId(appAttributeId.id),
+          },
         },
-      },
-    });
+      ]);
 
-    if (result) return true;
+      if (!appAttribute[0] || !appAttribute[0].attributes)
+        throw new Error(`Attribute ${appAttributeId} not found`);
+      // get attribute
+      appAttribute = appAttribute[0].attributes;
+
+      const result = await Models.PrivacyPolicy.findOne({
+        attributes: {
+          $elemMatch: {
+            _id: { $in: uppAttributes },
+            left: { $lte: appAttribute.left },
+            right: { $gte: appAttribute.right },
+          },
+        },
+      });
+      if (result) return true;
+    }
+    return false;
+  } catch (err) {
+    chalk.red(console.error("evaluateAttributeType: " + err.message));
+    throw err;
   }
-  return false;
 };
 
 // evaluate attributes between app and upp
@@ -135,26 +143,29 @@ const evaluatePurposes = async (appId, appPurposes, privacyPreference) => {
   ]);
 
   console.log(
+    isAllowed ? chalk.green("✅") : chalk.red("✖"),
     chalk.blue(
-      `PURPOSE - allow: APP: ${JSON.stringify(appPurposes)} - UPP ${
-        privacyPreference.allowedPurposes
-      } is ${chalk.green(isAllowed)}`
+      `PURPOSE - allow: APP: ${JSON.stringify(
+        appPurposes
+      )} - UPP ${JSON.stringify(privacyPreference.allowedPurposes)}`
     )
   );
 
   console.log(
+    !isExcepted ? chalk.green("✅") : chalk.red("✖"),
     chalk.blue(
-      `PURPOSE - except: APP: ${JSON.stringify(appPurposes)} - UPP ${
-        privacyPreference.prohibitedPurposes
-      } is ${chalk.green(!isExcepted)}`
+      `PURPOSE - except: APP: ${JSON.stringify(
+        appPurposes
+      )} - UPP ${JSON.stringify(privacyPreference.prohibitedPurposes)}`
     )
   );
 
   console.log(
+    !isDeny ? chalk.green("✅") : chalk.red("✖"),
     chalk.blue(
-      `PURPOSE - deny: APP: ${JSON.stringify(appPurposes)} - UPP ${
-        privacyPreference.denyPurposes
-      } is ${chalk.green(!isDeny)}`
+      `PURPOSE - deny: APP: ${JSON.stringify(
+        appPurposes
+      )} - UPP ${JSON.stringify(privacyPreference.denyPurposes)}`
     )
   );
 
@@ -190,10 +201,9 @@ const evaluatePurposesType = async (
 
   for (let i = 0; i < appPurposes.length; i++) {
     const appPurposeId = appPurposes[i];
-    let appPurpose = await Models.App.aggregate([
-      { $match: { _id: mongoose.Types.ObjectId(appId) } },
+    let appPurpose = await Models.PrivacyPolicy.aggregate([
       { $unwind: "$purposes" },
-      { $match: { "purposes._id": mongoose.Types.ObjectId(appPurposeId) } },
+      { $match: { "purposes._id": mongoose.Types.ObjectId(appPurposeId.id) } },
     ]);
 
     if (!appPurpose[0] || !appPurpose[0].purposes)
@@ -201,8 +211,7 @@ const evaluatePurposesType = async (
     // get purpose
     appPurpose = appPurpose[0].purposes;
 
-    const result = await Models.App.findOne({
-      _id: appId,
+    const result = await Models.PrivacyPolicy.findOne({
       purposes: {
         $elemMatch: {
           _id: { $in: uppAppPurposes },

@@ -1,13 +1,10 @@
+require("dotenv").config();
 import mongoose from "mongoose";
 
-const path = require("path");
-require("dotenv").config({ path: path.join(__dirname, "../../.env") });
-
-mongoose.connect(process.env.MONGODB_URL, {
+const { MONGODB_URL } = process.env;
+mongoose.connect(MONGODB_URL, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
-  user: process.env.MONGODB_USERNAME,
-  pass: process.env.MONGODB_PASSWORD,
 });
 
 mongoose.connection.on("error", (err) => {
@@ -15,4 +12,4 @@ mongoose.connection.on("error", (err) => {
   console.log(err);
 });
 
-mongoose.set("debug", true);
+// mongoose.set("debug", true);

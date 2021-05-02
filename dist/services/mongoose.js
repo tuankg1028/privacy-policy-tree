@@ -4,23 +4,18 @@ var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefau
 
 var _mongoose = _interopRequireDefault(require("mongoose"));
 
-var path = require("path");
+require("dotenv").config();
 
-require("dotenv").config({
-  path: path.join(__dirname, "../../.env")
-});
+var MONGODB_URL = process.env.MONGODB_URL;
+console.log(1, MONGODB_URL);
 
-_mongoose["default"].connect(process.env.MONGODB_URL, {
+_mongoose["default"].connect("mongodb://db:27017/privacy-policy", {
   useNewUrlParser: true,
-  useUnifiedTopology: true,
-  user: process.env.MONGODB_USERNAME,
-  pass: process.env.MONGODB_PASSWORD
+  useUnifiedTopology: true
 });
 
 _mongoose["default"].connection.on("error", function (err) {
   // eslint-disable-next-line no-console
   console.log(err);
-});
-
-_mongoose["default"].set("debug", true);
+}); // mongoose.set("debug", true);
 //# sourceMappingURL=mongoose.js.map
